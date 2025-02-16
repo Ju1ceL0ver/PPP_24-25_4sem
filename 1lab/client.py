@@ -15,7 +15,7 @@ class Client:
         self.host='localhost'
         self.sock=socket.socket()
         self.sock.connect((self.host,self.port))
-        self.allowed=['ls','pwd','exit','help','lsi']
+        self.allowed=['ls','pwd','exit','help','lsi','stop_server']
         self.running=True
         self.last_command=None
 
@@ -53,20 +53,23 @@ class Client:
         with open('file_tree.json', 'w', encoding='utf-8') as f:
             json.dump(tree, f, ensure_ascii=False, indent=4)
 
+
     def draw(self,data, prefix=""):
         for key, value in data.items():
-            if isinstance(value, dict):  # Если это папка
-                print(prefix + "├── " + key)  # Печатаем название папки
-                self.draw(value, prefix + "│   ")  # Рекурсивно обрабатываем содержимое папки
-            else:  # Если это файл
-                print(prefix + "├── " + f"{key} ({value})")  # Печатаем название файла и его размер
+            if isinstance(value, dict):
+                print(prefix + "├── " + key)
+                self.draw(value, prefix + "│   ")
+            else:
+                print(prefix + "├── " + f"{key} ({value})")
+
 
     def handle(self,response):
         response=json.loads(response)
         status=response.get('status',None)
         message=response.get('message',None)
         tree=response.get('tree',None)
-        print(message)
+        if message is not None:
+            print(message)
         if tree:
             self.save_file_tree(tree)
             print('File tree has been saved')
@@ -85,10 +88,13 @@ class Client:
                 response=self.receive()
                 self.handle(response)
 
+if __name__=='__main__':
+    try:
+        client=Client(6666)
+        client.start()
+    except ConnectionRefusedError:
+        print('Server has not been started or refused connection')
 
 
-
-client=Client(6666)
-client.start()
 
 
