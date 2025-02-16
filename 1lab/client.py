@@ -3,6 +3,7 @@
 import socket
 import re
 import json
+import struct
 
 
 class Client:
@@ -22,25 +23,32 @@ class Client:
     def input_command(self):
         command = input('-->').strip()
         if command in self.allowed or command.startswith('cd '):
-            self.sock.send((command + '\0').encode())
+            self.send_command(command)
             self.last_command = command
             return True
         if command == 'draw':
-            self.sock.send('ls\0'.encode())
+            self.send_command('ls')
             self.last_command = 'draw'
             return True
         else:
             print('Unknown command. Use "help" to see all commands')
             return False
 
+    def send_command(self, command):
+        # Send the length of the command first, then the command itself
+        command_bytes = command.encode()
+        self.sock.send(struct.pack('!I', len(command_bytes)))
+        self.sock.send(command_bytes)
+
     def receive(self):
+        # Receive the length of the response first
+        length_data = self.sock.recv(4)
+        length = struct.unpack('!I', length_data)[0]
+        # Receive the actual response
         data = bytearray()
-        while True:
-            chunk = self.sock.recv(1024)
+        while len(data) < length:
+            chunk = self.sock.recv(min(1024, length - len(data)))
             if not chunk:
-                break
-            if b'\0' in chunk:
-                data.extend(chunk.split(b'\0')[0])
                 break
             data.extend(chunk)
         return data.decode()

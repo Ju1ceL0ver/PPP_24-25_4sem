@@ -4,6 +4,7 @@ import socket
 import os
 import json
 import threading
+import struct
 
 
 class Server:
@@ -22,13 +23,14 @@ class Server:
         self.stop_event = threading.Event()
 
     def receive(self, client_conn):
+        # Receive the length of the command first
+        length_data = client_conn.recv(4)
+        length = struct.unpack('!I', length_data)[0]
+        # Receive the actual command
         data = bytearray()
-        while True:
-            chunk = client_conn.recv(1024)
+        while len(data) < length:
+            chunk = client_conn.recv(min(1024, length - len(data)))
             if not chunk:
-                break
-            if b'\0' in chunk:
-                data.extend(chunk.split(b'\0')[0])
                 break
             data.extend(chunk)
         return data.decode()
@@ -97,8 +99,8 @@ class Server:
         self.stop_event.set()
         for client_conn in self.clients:
             try:
-                client_conn.send((json.dumps(
-                    {'status': 'Success', 'message': 'Server is stopping', 'stop': True}) + '\0').encode())
+                client_conn.send(struct.pack('!I', len(json.dumps({'status': 'Success', 'message': 'Server is stopping', 'stop': True}).encode())))
+                client_conn.send(json.dumps({'status': 'Success', 'message': 'Server is stopping', 'stop': True}).encode())
             except:
                 pass
         return {'status': 'Success', 'message': 'Server has been stopped'}
@@ -122,13 +124,14 @@ class Server:
                 elif data == 'exit':
                     response = self.exit(client_conn)
                 elif data == 'stop_server':
-
                     response = self.stop_server()
                     os._exit(os.EX_OK)
                 elif 'cd ' in data:
                     d = data.replace('cd ', '', 1)
                     response = self.cd(d)
-                client_conn.send((json.dumps(response) + '\0').encode())
+                response_bytes = json.dumps(response).encode()
+                client_conn.send(struct.pack('!I', len(response_bytes)))
+                client_conn.send(response_bytes)
                 if response.get('stop', False):
                     break
         finally:
