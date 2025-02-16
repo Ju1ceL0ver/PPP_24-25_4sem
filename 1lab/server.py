@@ -5,6 +5,7 @@ import os
 import json
 import threading
 
+
 class Server:
 
     def __init__(self, port, limit=5):
@@ -96,7 +97,8 @@ class Server:
         self.stop_event.set()
         for client_conn in self.clients:
             try:
-                client_conn.send((json.dumps({'status': 'Success', 'message': 'Server is stopping', 'stop': True}) + '\0').encode())
+                client_conn.send((json.dumps(
+                    {'status': 'Success', 'message': 'Server is stopping', 'stop': True}) + '\0').encode())
             except:
                 pass
         return {'status': 'Success', 'message': 'Server has been stopped'}
@@ -120,7 +122,7 @@ class Server:
                 elif data == 'exit':
                     response = self.exit(client_conn)
                 elif data == 'stop_server':
-                    
+
                     response = self.stop_server()
                     os._exit(os.EX_OK)
                 elif 'cd ' in data:
@@ -136,9 +138,11 @@ class Server:
     def start(self):
         while not self.stop_event.is_set():
             client_conn, client_addr = self.sock.accept()
-            client_handler = threading.Thread(target=self.handle_client, args=(client_conn, client_addr))
+            client_handler = threading.Thread(
+                target=self.handle_client, args=(client_conn, client_addr))
             client_handler.start()
         self.sock.close()
+
 
 if __name__ == "__main__":
     try:
