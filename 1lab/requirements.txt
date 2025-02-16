@@ -4,3 +4,4 @@ threading
 os
 json
 re
+struct

@@ -4,6 +4,8 @@ import os
 import re
 import socket
 import time
+import struct
+
 
 from client import Client
 from server import Server
