@@ -1,0 +1,9 @@
+alembic
+sqlalchemy
+uvicorn
+fastapi
+python-jose[cryptography]
+passlib[bcrypt]
+pydantic
+pydantic-settings
+pydantic[email]
