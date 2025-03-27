@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin-bottom: 20px; }
+        pre { background: #f4f4f4; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Test Your API</h1>
+
+    <div class="section">
+        <h2>Sign Up</h2>
+        <form id="signupForm">
+            <input type="email" id="signupEmail" placeholder="Email" required><br>
+            <input type="password" id="signupPassword" placeholder="Password" required><br>
+            <button type="submit">Sign Up</button>
+        </form>
+        <pre id="signupResponse"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="email" id="loginEmail" placeholder="Email" required><br>
+            <input type="password" id="loginPassword" placeholder="Password" required><br>
+            <button type="submit">Login</button>
+        </form>
+        <pre id="loginResponse"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Get Me</h2>
+        <form id="meForm">
+            <input type="text" id="token" placeholder="Bearer Token" required><br>
+            <button type="submit">Get Me</button>
+        </form>
+        <pre id="meResponse"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Shortest Path (TSP)</h2>
+        <form id="tspForm">
+            <textarea id="graph" rows="5" placeholder='{"graph": {"nodes": [1, 2, 3, 4], "edges": [[1, 2], [2, 3], [3, 4], [1, 4]]}}' required></textarea><br>
+            <button type="submit">Solve TSP</button>
+        </form>
+        <pre id="tspResponse"></pre>
+    </div>
+
+    <script>
+        // Обработчик для Sign Up
+        document.getElementById("signupForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            fetch("/sign-up/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: document.getElementById("signupEmail").value,
+                    password: document.getElementById("signupPassword").value
+                })
+            })
+            .then(res => res.json())
+            .then(data => document.getElementById("signupResponse").textContent = JSON.stringify(data, null, 2))
+            .catch(err => document.getElementById("signupResponse").textContent = "Error: " + err);
+        });
+
+        // Обработчик для Login
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            fetch("/login/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: document.getElementById("loginEmail").value,
+                    password: document.getElementById("loginPassword").value
+                })
+            })
+            .then(res => res.json())
+            .then(data => document.getElementById("loginResponse").textContent = JSON.stringify(data, null, 2))
+            .catch(err => document.getElementById("loginResponse").textContent = "Error: " + err);
+        });
+
+        // Обработчик для Get Me
+        document.getElementById("meForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            fetch("/users/me/", {
+                method: "GET",
+                headers: { "Authorization": document.getElementById("token").value }
+            })
+            .then(res => res.json())
+            .then(data => document.getElementById("meResponse").textContent = JSON.stringify(data, null, 2))
+            .catch(err => document.getElementById("meResponse").textContent = "Error: " + err);
+        });
+
+        // Обработчик для Shortest Path
+        document.getElementById("tspForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            fetch("/shortest-path/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: document.getElementById("graph").value
+            })
+            .then(res => res.json())
+            .then(data => document.getElementById("tspResponse").textContent = JSON.stringify(data, null, 2))
+            .catch(err => document.getElementById("tspResponse").textContent = "Error: " + err);
+        });
+    </script>
+</body>
+</html>
